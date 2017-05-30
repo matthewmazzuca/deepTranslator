@@ -29,8 +29,8 @@ tf.app.flags.DEFINE_integer("size", 512, "Size of each model layer.")
 tf.app.flags.DEFINE_integer("num_layers", 2, "Number of layers in the model.")
 tf.app.flags.DEFINE_integer("s_vocab_size", 30000, "Source language vocabulary size.")
 tf.app.flags.DEFINE_integer("t_vocab_size", 30000, "Target language vocabulary size.")
-tf.app.flags.DEFINE_string("data_dir", "/Users/fancyshmancy/Development/nlp/proj2/data/", "Data directory")
-tf.app.flags.DEFINE_string("train_dir", "/Users/fancyshmancy/Development/nlp/proj2/runs/de_en_lstm_reg/", "Training directory.")
+tf.app.flags.DEFINE_string("data_dir", "/Users/matthewmazzuca/Documents/github/deepTranslator/data", "Data directory")
+tf.app.flags.DEFINE_string("train_dir", "/Users/matthewmazzuca/Documents/github/deepTranslator/runs/", "Training directory.")
 tf.app.flags.DEFINE_integer("max_train_data_size", 0,
                             "Limit on the size of training data (0: no limit).")
 tf.app.flags.DEFINE_integer("steps_per_checkpoint", 200,
@@ -115,7 +115,13 @@ def train():
   print("Preparing NMT data in %s" % FLAGS.data_dir)
   print("    source langauge: %s" % source)
   print("    target language: %s" % target)
-  s_train, t_train, s_dev, t_dev, _, _, _, _ = data_utils.prepare_data(FLAGS.data_dir, FLAGS.s_vocab_size, FLAGS.t_vocab_size, source, target)
+  # print(data_utils.prepare_data(FLAGS.data_dir, FLAGS.s_vocab_size, FLAGS.t_vocab_size, source, target)[0])
+  tempTuple = data_utils.prepare_data(FLAGS.data_dir, FLAGS.s_vocab_size, FLAGS.t_vocab_size, source, target)
+  s_train = tempTuple[0]
+  t_train = tempTuple[1]
+  s_dev = tempTuple[2]
+  t_dev = tempTuple[3]
+  # s_train, t_train, s_dev, t_dev, _, _, _, _ = data_utils.prepare_data(FLAGS.data_dir, FLAGS.s_vocab_size, FLAGS.t_vocab_size, source, target)
   with tf.Session() as sess:
     # Create model.
     print("Creating %d layers of %d units." % (FLAGS.num_layers, FLAGS.size))
@@ -141,7 +147,7 @@ def train():
     previous_losses = []
     perplexity = 1e10
     train_steps, train_ppx, bucket_ppx = [], [], {0:[], 1:[], 2:[], 3:[]}
-    
+
     while perplexity>20.:
       # Choose a bucket according to data distribution. We pick a random number
       # in [0, 1] and use the corresponding interval in train_buckets_scale.
@@ -234,7 +240,7 @@ def testBLEU():
           bucket_id = i
           break
       else:
-        logging.warning("Sentence truncated: %s", sentence) 
+        logging.warning("Sentence truncated: %s", sentence)
 
       # Get a 1-element batch to feed the sentence to the model.
       encoder_inputs, decoder_inputs, target_weights = model.get_batch(
