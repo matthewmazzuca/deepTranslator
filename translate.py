@@ -269,7 +269,7 @@ def testBLEU():
 
 
 def main(_):
-  train()
+  # train()
   testBLEU()
 
 
